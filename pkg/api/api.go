@@ -76,7 +76,6 @@ func parseConfig(cfg string) {
  */
 func GetHomepageUrl(w http.ResponseWriter) {
 	url := configOpenFalcon.Home
-	log.Println("url =", url)
 	resp := []string {
 		url,
 	}
