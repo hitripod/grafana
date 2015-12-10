@@ -4,5 +4,6 @@
         "idle": 10,
         "max": 100
     },
-    "home": "http://exemple.com/"
+    "home": "http://example.com/",
+    "login": "http://example.com/path_to_login?callback=http://example.com/"
 }
