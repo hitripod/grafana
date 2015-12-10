@@ -47,12 +47,12 @@ function (angular, _, store, config) {
     /**
      * @function name:   this.redirectToHome = function()
      * @description:     This function redirects users to homepage.
-     * @related issues:  OWL-187
+     * @related issues:  OWL-201, OWL-187
      * @param:           void
      * @return:          void
      * @author:          Don Hsieh
      * @since:           12/01/2015
-     * @last modified:   12/01/2015
+     * @last modified:   12/10/2015
      * @called by:       <img class="logo-icon" src="img/fav32.png" ng-click="contextSrv.redirectToHome()"></img>
      *                    in grafana/public/app/partials/sidemenu.html
      *                   <img class="logo-icon" src="img/fav32.png" ng-click="contextSrv.redirectToHome()"></img>
@@ -63,10 +63,10 @@ function (angular, _, store, config) {
         method: 'GET',
         url: '/home'
       }).then(function successCallback(data) {
-          var url = data.data[0];
+          var url = data.data;
           $window.location.href = url;
-        }, function errorCallback(data) {
-          console.log('Error: data =', data);
+        }, function errorCallback(err) {
+          console.log('redirectToHome() Error: err =', err);
         });
     };
 
