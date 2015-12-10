@@ -8,7 +8,7 @@ function (angular, _, config) {
 
   var module = angular.module('grafana.services');
 
-  module.service('backendSrv', function($http, alertSrv, $timeout) {
+  module.service('backendSrv', function($http, alertSrv, $timeout, $window) {
     var self = this;
 
     this.get = function(url, params) {
@@ -29,6 +29,32 @@ function (angular, _, config) {
 
     this.put = function(url, data) {
       return this.request({ method: 'PUT', url: url, data: data });
+    };
+
+    /**
+     * @function name:   this.redirectToLoginPage = function()
+     * @description:     This function redirects users to login page.
+     * @related issues:  OWL-201
+     * @param:           void
+     * @return:          void
+     * @author:          Don Hsieh
+     * @since:           12/10/2015
+     * @last modified:   12/10/2015
+     * @called by:       this._handleError = function(err)
+     *                    in grafana/public/app/services/backendSrv.js
+     */
+    this.redirectToLoginPage = function() {
+      $http({
+        method: 'GET',
+        url: '/checkLoginStatus'
+      }).then(function successCallback(data) {
+          var url = data.data;
+          if (url.length > 0) {
+            $window.location.href = url;
+          }
+        }, function errorCallback(err) {
+          console.log('redirectToLoginPage() Error: err =', err);
+        });
     };
 
     this._handleError = function(err) {
@@ -56,6 +82,7 @@ function (angular, _, config) {
         if (data.message) {
           alertSrv.set("Problem!", data.message, data.severity, 10000);
         }
+        self.redirectToLoginPage();
 
         throw data;
       };
