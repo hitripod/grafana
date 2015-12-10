@@ -4,6 +4,9 @@
 package setting
 
 import (
+	"github.com/toolkits/file"
+	"sync"
+
 	"bytes"
 	"encoding/json"
 	"errors"
@@ -138,9 +141,59 @@ type CommandLineArgs struct {
 	Args     []string
 }
 
+type DatabaseConfig struct {
+	Addr    string  `json:"addr"`
+	Idle    int     `json:"idle"`
+	Max     int     `json:"max"`
+}
+
+type GlobalConfig struct {
+	Db      *DatabaseConfig  `json:"db"`
+	Home    string           `json:"home"`
+	Login   string           `json:"login"`
+}
+
+var (
+	ConfigOpenFalcon *GlobalConfig
+	lock = new(sync.RWMutex)
+)
+
+/**
+ * @function name:   func parseConfig()
+ * @description:     This function parses config file cfg.json.
+ * @related issues:  OWL-201, OWL-115, OWL-085
+ * @param:           void
+ * @return:          void
+ * @author:          Don Hsieh
+ * @since:           09/14/2015
+ * @last modified:   12/10/2015
+ * @called by:       func Register(r *macaron.Macaron)
+ */
+func parseConfig() {
+	cfg := "cfg.json"
+	if !file.IsExist(cfg) {
+		log.Fatal(4, "config file:", cfg, "is not existent. maybe you need `mv cfg.example.json cfg.json`")
+	}
+	configContent, err := file.ToTrimString(cfg)
+	if err != nil {
+		log.Fatal(4, "read config file:", cfg, "fail:", err)
+	}
+
+	var configGlobal GlobalConfig
+	err = json.Unmarshal([]byte(configContent), &configGlobal)
+	if err != nil {
+		log.Fatal(4, "parse config file:", cfg, "fail:", err)
+		return
+	}
+	lock.Lock()
+	defer lock.Unlock()
+	ConfigOpenFalcon = &configGlobal
+}
+
 func init() {
 	IsWindows = runtime.GOOS == "windows"
 	log.NewLogger(0, "console", `{"level": 0, "formatting":true}`)
+	parseConfig()
 }
 
 func parseAppUrlAndSubUrl(section *ini.Section) (string, string) {

@@ -2,84 +2,32 @@ package api
 
 import (
 	"encoding/json"
-	"flag"
-	"github.com/toolkits/file"
-	"log"
 	"net/http"
-	"sync"
 
 	"github.com/Unknwon/macaron"
 	"github.com/Cepave/grafana/pkg/api/dtos"
 	"github.com/Cepave/grafana/pkg/middleware"
 	m "github.com/Cepave/grafana/pkg/models"
+	"github.com/Cepave/grafana/pkg/setting"
 	"github.com/macaron-contrib/binding"
 )
 
-var OpenFalconConfigFile = flag.String("configGlobal", "cfg.json", "configuration file")
-type DatabaseConfig struct {
-	Addr    string  `json:"addr"`
-	Idle    int     `json:"idle"`
-	Max     int     `json:"max"`
-}
-
-type GlobalConfig struct {
-	Db      *DatabaseConfig  `json:"db"`
-	Home    string           `json:"home"`
-}
-
-var (
-	configOpenFalcon     *GlobalConfig
-	lock = new(sync.RWMutex)
-)
-
 /**
- * @function name:   func parseConfig(cfg string)
- * @description:     This function parses config file cfg.json.
- * @related issues:  OWL-115, OWL-085
- * @param:           cfg string
- * @return:          void
- * @author:          Don Hsieh
- * @since:           09/14/2015
- * @last modified:   10/07/2015
- * @called by:       func Register(r *macaron.Macaron)
- */
-func parseConfig(cfg string) {
-	if !file.IsExist(cfg) {
-		log.Fatalln("config file:", cfg, "is not existent. maybe you need `mv cfg.example.json cfg.json`")
-	}
-	configContent, err := file.ToTrimString(cfg)
-	if err != nil {
-		log.Fatalln("read config file:", cfg, "fail:", err)
-	}
-
-	var configGlobal GlobalConfig
-	err = json.Unmarshal([]byte(configContent), &configGlobal)
-	if err != nil {
-		log.Fatalln("parse config file:", cfg, "fail:", err)
-		return
-	}
-	lock.Lock()
-	defer lock.Unlock()
-	configOpenFalcon = &configGlobal
-}
-
-/**
- * @function name:   func GetHomepageUrl(w http.ResponseWriter)
- * @description:     This function gets URL of homepage.
- * @related issues:  OWL-187
+ * @function name:   func RenderJson(w http.ResponseWriter, v interface{})
+ * @description:     This function renders JSON response.
+ * @related issues:  OWL-201
  * @param:           w http.ResponseWriter
+ * @param:           v interface{}
  * @return:          void
  * @author:          Don Hsieh
- * @since:           12/01/2015
- * @last modified:   12/01/2015
- * @called by:       func Register(r *macaron.Macaron)
+ * @since:           12/10/2015
+ * @last modified:   12/10/2015
+ * @called by:       func GetHomepageUrl(w http.ResponseWriter)
+ *                   func GetLoginUrl(w http.ResponseWriter, c *middleware.Context)
+ *                    in grafana/pkg/api/api.go
  */
-func GetHomepageUrl(w http.ResponseWriter) {
-	url := configOpenFalcon.Home
-	resp := []string {
-		url,
-	}
-	bs, err := json.Marshal(resp)
+func RenderJson(w http.ResponseWriter, v interface{}) {
+	bs, err := json.Marshal(v)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -88,11 +36,47 @@ func GetHomepageUrl(w http.ResponseWriter) {
 	w.Write(bs)
 }
 
+/**
+ * @function name:   func GetHomepageUrl(w http.ResponseWriter)
+ * @description:     This function returns URL of homepage.
+ * @related issues:  OWL-201, OWL-187
+ * @param:           w http.ResponseWriter
+ * @return:          void
+ * @author:          Don Hsieh
+ * @since:           12/01/2015
+ * @last modified:   12/10/2015
+ * @called by:       func Register(r *macaron.Macaron)
+ *                    in grafana/pkg/api/api.go
+ */
+func GetHomepageUrl(w http.ResponseWriter) {
+	url := setting.ConfigOpenFalcon.Home
+	RenderJson(w, url)
+}
+
+/**
+ * @function name:   func GetHomepageUrl(w http.ResponseWriter, c *middleware.Context)
+ * @description:     This function returns URL of login page.
+ * @related issues:  OWL-201
+ * @param:           w http.ResponseWriter
+ * @param:           c *middleware.Context
+ * @return:          void
+ * @author:          Don Hsieh
+ * @since:           12/10/2015
+ * @last modified:   12/10/2015
+ * @called by:       func Register(r *macaron.Macaron)
+ *                    in grafana/pkg/api/api.go
+ */
+func GetLoginUrl(w http.ResponseWriter, c *middleware.Context) {
+	url := ""
+	sig := c.GetCookie("sig")
+	if len(sig) == 0 {
+		url = setting.ConfigOpenFalcon.Login
+	}
+	RenderJson(w, url)
+}
+
 // Register adds http routes
 func Register(r *macaron.Macaron) {
-	flag.Parse()
-	parseConfig(*OpenFalconConfigFile)
-
 	reqSignedIn := middleware.Auth(&middleware.AuthOptions{ReqSignedIn: true})
 	reqGrafanaAdmin := middleware.Auth(&middleware.AuthOptions{ReqSignedIn: true, ReqGrafanaAdmin: true})
 	reqEditorRole := middleware.RoleAuth(m.ROLE_EDITOR, m.ROLE_ADMIN)
@@ -108,6 +92,7 @@ func Register(r *macaron.Macaron) {
 	r.Get("/login", LoginView)
 	r.Get("/invite/:code", Index)
 	r.Get("/home", GetHomepageUrl)
+	r.Get("/checkLoginStatus", GetLoginUrl)
 
 	// authed views
 	r.Get("/profile/", reqSignedIn, Index)
