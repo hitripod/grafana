@@ -13,6 +13,7 @@ function (angular, $) {
 
     $scope.init = function() {
       contextSrv.sidemenu = false;
+      contextSrv.navbarShadow = false;
 
       var params = $location.search();
       panelId = parseInt(params.panelId);
