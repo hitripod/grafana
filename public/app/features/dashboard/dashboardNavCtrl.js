@@ -15,6 +15,7 @@ function (angular, _) {
     $scope.init = function() {
       $scope.onAppEvent('save-dashboard', $scope.saveDashboard);
       $scope.onAppEvent('delete-dashboard', $scope.deleteDashboard);
+      this.navbarShadow = true;
     };
 
     $scope.openEditView = function(editview) {
