@@ -8,6 +8,12 @@ function (coreModule) {
 
     if (!$routeParams.slug) {
       backendSrv.get('/api/dashboards/home').then(function(result) {
+        backendSrv.get('/api/user').then(function(user) {
+          var logo = 'logo_transparent_200x_' + user.theme + '.png';
+          var content = result.dashboard.rows[0].panels[0].content;
+          content = content.replace('logo_transparent_200x.png', logo);
+          result.dashboard.rows[0].panels[0].content = content;
+        });
         var meta = result.meta;
         meta.canSave = meta.canShare = meta.canStar = false;
         $scope.initDashboard(result, $scope);
