@@ -10,12 +10,12 @@ function (angular, _) {
 
   var module = angular.module('grafana.controllers');
 
-  module.controller('DashboardNavCtrl', function($scope, $rootScope, alertSrv, $location, playlistSrv, backendSrv, $timeout) {
+  module.controller('DashboardNavCtrl', function($scope, $rootScope, alertSrv, $location, playlistSrv, backendSrv, $timeout, contextSrv) {
 
     $scope.init = function() {
       $scope.onAppEvent('save-dashboard', $scope.saveDashboard);
       $scope.onAppEvent('delete-dashboard', $scope.deleteDashboard);
-      this.navbarShadow = true;
+      contextSrv.navbarShadow = true;
     };
 
     $scope.openEditView = function(editview) {
