@@ -30,8 +30,9 @@ function (angular, _, config, gfunc, Parser) {
       $scope.functions = [];
       $scope.segments = [];
       delete $scope.parserError;
-
       if ($scope.target.textEditor) {
+        // fix separated from "#" to "." [for layout display]
+        $scope.target.target =  $scope.target.target.replace(/#/g, ".");
         return;
       }
 
@@ -112,7 +113,8 @@ function (angular, _, config, gfunc, Parser) {
       var arr = $scope.segments.slice(0, index);
 
       return _.reduce(arr, function(result, segment) {
-        return result ? (result + "." + segment.value) : segment.value;
+        var res = result ? (result + "#" + segment.value) : segment.value;
+        return res;
       }, "");
     }
 
@@ -152,7 +154,17 @@ function (angular, _, config, gfunc, Parser) {
     }
 
     $scope.getAltSegments = function (index, hostname) {
-      var query = index === 0 ? '*.' + hostname : getSegmentPathUpTo(index) + '.*';
+
+      var query = "";
+      if(index === 0) {
+        query = hostname || "";
+      }
+      else if(index === 1){
+        query = getSegmentPathUpTo(index) + '#.*';
+      }
+      else{
+        query = getSegmentPathUpTo(index) + '.*';
+      }
 
       return $scope.datasource.metricFindQuery(query).then(function(segments) {
           var altSegments = _.map(segments, function(segment) {
@@ -283,3 +295,4 @@ function (angular, _, config, gfunc, Parser) {
   });
 
 });
+
