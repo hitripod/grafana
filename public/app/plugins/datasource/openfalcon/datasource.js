@@ -241,7 +241,7 @@ function (angular, _, $, config, dateMath) {
     };
 
     OpenfalconDatasource.prototype.testDatasource = function() {
-      return this.metricFindQuery('*').then(function () {
+      return this.metricFindQuery('').then(function () {
         return { status: "success", message: "Data source is working", title: "Success" };
       });
     };
