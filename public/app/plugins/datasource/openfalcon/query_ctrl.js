@@ -31,9 +31,14 @@ function (angular, _, config, gfunc, Parser) {
       $scope.segments = [];
       delete $scope.parserError;
       if ($scope.target.textEditor) {
-        // fix separated from "#" to "." [for layout display]
-        $scope.target.target =  $scope.target.target.replace(/#/g, ".");
+        //fix "." back to "#"
+        $scope.target.target = $scope.target.target.replace(/\./g, "#");
+        //fix ip back to the right foramt ex. 10#10#10#10 -> 10.10.10.10
+        $scope.target.target = $scope.target.target.replace(/(\d+)#(\d+)#(\d+)#(\d+)/g,"$1.$2.$3.$4");
         return;
+      }else{
+        //fix "." to "#"
+        $scope.target.target =  $scope.target.target.replace(/#/g, ".");
       }
 
       var parser = new Parser($scope.target.target);
@@ -113,8 +118,7 @@ function (angular, _, config, gfunc, Parser) {
       var arr = $scope.segments.slice(0, index);
 
       return _.reduce(arr, function(result, segment) {
-        var res = result ? (result + "#" + segment.value) : segment.value;
-        return res;
+        return result ? (result + "#" + segment.value) : segment.value;
       }, "");
     }
 
@@ -159,11 +163,8 @@ function (angular, _, config, gfunc, Parser) {
       if(index === 0) {
         query = hostname || "";
       }
-      else if(index === 1){
-        query = getSegmentPathUpTo(index) + '#.*';
-      }
       else{
-        query = getSegmentPathUpTo(index) + '.*';
+        query = getSegmentPathUpTo(index) + '#.*';
       }
 
       return $scope.datasource.metricFindQuery(query).then(function(segments) {
@@ -295,4 +296,3 @@ function (angular, _, config, gfunc, Parser) {
   });
 
 });
-
