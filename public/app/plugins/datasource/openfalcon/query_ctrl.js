@@ -38,7 +38,7 @@ function (angular, _, config, gfunc, Parser) {
         return;
       }else{
         //fix "." to "#"
-        $scope.target.target =  $scope.target.target.replace(/#/g, ".");
+        $scope.target.target =  $scope.target.target.replace(/#/g, ".").replace(/\s*\.\s*$/,"");
       }
 
       var parser = new Parser($scope.target.target);
@@ -182,9 +182,9 @@ function (angular, _, config, gfunc, Parser) {
               expandable: true,
             }));
           });
-
+          // no support on open-falcon
           // add wildcard option
-          altSegments.unshift(uiSegmentSrv.newSegment('*'));
+          // altSegments.unshift(uiSegmentSrv.newSegment('*'));
           return altSegments;
         })
         .then(null, function(err) {

@@ -101,7 +101,12 @@ function (angular, _, $, config, dateMath) {
             });
             obj = {};
             obj.datapoints = datapoints;
-            obj.target = host + '.' + metric;
+            obj.target = host;
+            //for fix space & unnecessary words error for layout
+            if(metric !== ""){
+              obj.target += '.' + metric.replace(/\s*$/g, "");
+            }
+            obj.target = obj.target.replace(/\s*$/g,"").replace(/\.\$$/,"");
             data.push(obj);
           }
         });

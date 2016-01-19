@@ -14,10 +14,12 @@ function (angular, _, $, gfunc) {
                             ' class="tight-form-input input-medium tight-form-input"' +
                             ' spellcheck="false" style="display:none"></input>';
 
-      var buttonTemplate = '<a class="tight-form-item tight-form-func dropdown-toggle"' +
+      //disable this function because ope-falcon didn't supoort this kind of compute
+      /*var buttonTemplate = '<a class="tight-form-item tight-form-func dropdown-toggle"' +
                               ' tabindex="1" gf-dropdown="functionMenu" data-toggle="dropdown">' +
                               '<i class="fa fa-plus"></i></a>';
-
+      */
+      var buttonTemplate = '<i class="fa"></i>';
       return {
         link: function($scope, elem) {
           var categories = gfunc.getCategories();
