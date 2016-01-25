@@ -27,9 +27,7 @@ function (angular, _, $, config, dateMath) {
 
     OpenfalconDatasource.prototype.query = function(options) {
       try {
-        //for fix Queryeditor issue
-        //var graph_targets = options.targets.toString().replace(/\./g, "#").replace(/(\d+)#(\d+)#(\d+)#(\d+)/g,"$1.$2.$3.$4");
-        var graph_targets = _.map(options.targets, function fixquerymetices(item) {
+        var GraphTargets = _.map(options.targets, function fixQueryMetices(item) {
                               if (item.target) {
                                 item.target = item.target.replace(/\./g, "#").replace(/(\d+)#(\d+)#(\d+)#(\d+)/g,"$1.$2.$3.$4");
                               }
@@ -38,7 +36,7 @@ function (angular, _, $, config, dateMath) {
         var graphOptions = {
           from: this.translateTime(options.range.from, 'round-down'),
           until: this.translateTime(options.range.to, 'round-up'),
-          targets: graph_targets,
+          targets: GraphTargets,
           format: options.format,
           cacheTimeout: options.cacheTimeout || this.cacheTimeout,
           maxDataPoints: options.maxDataPoints,
