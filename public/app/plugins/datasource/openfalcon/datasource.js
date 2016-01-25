@@ -27,10 +27,16 @@ function (angular, _, $, config, dateMath) {
 
     OpenfalconDatasource.prototype.query = function(options) {
       try {
+        var graphTargets = _.map(options.targets, function fixQueryMetices(item) {
+                              if (item.target) {
+                                item.target = item.target.replace(/\./g, "#").replace(/(\d+)#(\d+)#(\d+)#(\d+)/g,"$1.$2.$3.$4");
+                              }
+                              return item;
+                            });
         var graphOptions = {
           from: this.translateTime(options.range.from, 'round-down'),
           until: this.translateTime(options.range.to, 'round-up'),
-          targets: options.targets,
+          targets: graphTargets,
           format: options.format,
           cacheTimeout: options.cacheTimeout || this.cacheTimeout,
           maxDataPoints: options.maxDataPoints,
@@ -72,7 +78,9 @@ function (angular, _, $, config, dateMath) {
      */
     OpenfalconDatasource.prototype.convertDataPointsToMs = function(result) {
       var obj = {};
-      if (!result.data.length) {
+      //retrun empty result when the query not yet complete
+      if (!result.data.length || result.data[0].dstype === "") {
+        result.data = [];
         return result;
       }
       if ('chartType' in result.data[0]) {   // This is a map query
@@ -101,7 +109,12 @@ function (angular, _, $, config, dateMath) {
             });
             obj = {};
             obj.datapoints = datapoints;
-            obj.target = host + '.' + metric;
+            obj.target = host;
+            //for fix space & unnecessary words error for layout
+            if(metric !== ""){
+              obj.target += '.' + metric.replace(/\s*$/g, "");
+            }
+            obj.target = obj.target.replace(/\s*$/g,"").replace(/\.\$$/,"");
             data.push(obj);
           }
         });
