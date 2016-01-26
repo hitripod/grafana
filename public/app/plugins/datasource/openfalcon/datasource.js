@@ -291,7 +291,6 @@ function (angular, _, $, config, dateMath) {
       var openFalcon_options = ['from', 'until', 'rawData', 'format', 'maxDataPoints', 'cacheTimeout'];
       var clean_options = [], targets = {};
       var target, targetValue, i;
-      var regex = /(\#[A-Z])/g;
       var intervalFormatFixRegex = /'(\d+)m'/gi;
 
       if (options.format !== 'png') {
@@ -313,10 +312,6 @@ function (angular, _, $, config, dateMath) {
         targets[this._seriesRefLetters[i]] = targetValue;
       }
 
-      function nestedSeriesRegexReplacer(match) {
-        return targets[match];
-      }
-
       for (i = 0; i < options.targets.length; i++) {
         target = options.targets[i];
         if (!target.target || target.hide) {
@@ -324,7 +319,6 @@ function (angular, _, $, config, dateMath) {
         }
 
         targetValue = targets[this._seriesRefLetters[i]];
-        targetValue = targetValue.replace(regex, nestedSeriesRegexReplacer);
         targets[this._seriesRefLetters[i]] = targetValue;
 
         clean_options.push("target=" + encodeURIComponent(targetValue));
