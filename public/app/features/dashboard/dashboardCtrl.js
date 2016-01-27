@@ -12,6 +12,7 @@ function (angular, $, config) {
   module.controller('DashboardCtrl', function(
       $scope,
       $rootScope,
+      $location,
       dashboardKeybindings,
       timeSrv,
       templateValuesSrv,
@@ -29,6 +30,19 @@ function (angular, $, config) {
     var resizeEventTimeout;
 
     this.init = function(dashboard) {
+      if ('host' in $location.search()) {
+        var host = $location.search().host;
+        dashboard.dashboard.templating.list[0].current.text = host;
+        dashboard.dashboard.templating.list[0].current.value = host;
+        var options = [];
+        var option = {
+          selected: true,
+          text: host,
+          value: host
+        };
+        options.push(option);
+        dashboard.dashboard.templating.list[0].options = options;
+      }
       $scope.resetRow();
       $scope.registerWindowResizeEvent();
       $scope.onAppEvent('show-json-editor', $scope.showJsonEditor);
