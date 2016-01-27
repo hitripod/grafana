@@ -76,9 +76,9 @@ func Overview(c *middleware.Context) {
  */
 func getUrl(metric string, host string) string {
 	panelId := ""
-	if metric == "net" {
+	if metric == "cpu" {
 		panelId = "1"
-	} else if metric == "cpu" {
+	} else if metric == "net" {
 		panelId = "2"
 	}
 	dashboardName := "overview"
