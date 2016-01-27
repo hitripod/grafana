@@ -114,6 +114,7 @@ func Register(r *macaron.Macaron) {
 	r.Get("/dashboard-solo/*", reqSignedIn, Index)
 	r.Get("/boss/cpu/:host", reqSignedIn, Cpu)
 	r.Get("/boss/net/:host", reqSignedIn, Net)
+	r.Get("/boss/overview/:host", reqSignedIn, Overview)
 
 	// sign up
 	r.Get("/signup", Index)
