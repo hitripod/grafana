@@ -60,6 +60,12 @@ func Overview(c *middleware.Context) {
 	c.Redirect(setting.AppSubUrl + url)
 }
 
+func OverviewServer(c *middleware.Context) {
+	host := c.Params(":host")
+	url := "/dashboard/db/status?host=" + host
+	c.Redirect(setting.AppSubUrl + url)
+}
+
 /**
  * @function name:   func getUrl(metric string, host string) string
  * @description:     This function returns destination URL.
