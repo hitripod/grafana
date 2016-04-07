@@ -30,8 +30,13 @@ function (angular, $, config) {
     var resizeEventTimeout;
 
     this.init = function(dashboard) {
+      var host = '';
       if ('host' in $location.search()) {
-        var host = $location.search().host;
+        host = $location.search().host;
+      } else if ('server' in $location.search()) {
+        host = $location.search().server;
+      }
+      if (host !== '') {
         dashboard.dashboard.templating.list[0].current.text = host;
         dashboard.dashboard.templating.list[0].current.value = host;
         var options = [];
