@@ -34,7 +34,7 @@ function (angular, moment, _, $, kbn, dateMath) {
         });
       }
 
-      return backendSrv.getDashboard($routeParams.type, $routeParams.slug).catch(function() {
+      return backendSrv.getDashboard(type, slug).catch(function() {
         return self._dashboardLoadFailed("Not found");
       });
     };
