@@ -31,8 +31,9 @@ function (angular, $, config) {
 
     this.init = function(dashboard) {
       var host = '';
-      if ('host' in $location.search()) {
-        host = $location.search().host;
+      if ($location.path().indexOf('/overview/') > -1) {
+        var arr = $location.path().split('/');
+        host = arr[arr.length-1];
       } else if ('server' in $location.search()) {
         host = $location.search().server;
       }
