@@ -22,6 +22,16 @@ define([
         controller : 'LoadDashboardCtrl',
         reloadOnSearch: false,
       })
+      .when('/boss/overview/:host', {
+        templateUrl: 'app/partials/dashboard.html',
+        controller : 'LoadDashboardCtrl',
+        reloadOnSearch: false,
+      })
+      .when('/overview/:host', {
+        templateUrl: 'app/partials/dashboard.html',
+        controller : 'LoadDashboardCtrl',
+        reloadOnSearch: false,
+      })
       .when('/dashboard-solo/:type/:slug', {
         templateUrl: 'app/features/panel/partials/soloPanel.html',
         controller : 'SoloPanelCtrl',

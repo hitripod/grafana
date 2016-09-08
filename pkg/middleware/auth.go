@@ -200,7 +200,9 @@ func Auth(options *AuthOptions) macaron.Handler {
 			c.SetCookie(setting.CookieUserName, "", -1, setting.AppSubUrl+"/")
 			c.SetCookie(setting.CookieRememberName, "", -1, setting.AppSubUrl+"/")
 			c.Session.Destory(c)
-			c.Redirect(setting.ConfigOpenFalcon.Login)
+			url := setting.ConfigOpenFalcon.Login + c.Req.RequestURI
+			log.Println(url)
+			c.Redirect(url)
 			return
 		}
 		if !c.IsSignedIn {
