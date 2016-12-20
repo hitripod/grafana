@@ -148,9 +148,12 @@ type DatabaseConfig struct {
 }
 
 type GlobalConfig struct {
-	Db      *DatabaseConfig  `json:"db"`
-	Home    string           `json:"home"`
-	Login   string           `json:"login"`
+	Db          *DatabaseConfig  `json:"db"`
+	UicDB       *DatabaseConfig  `json:"uicdb"`
+	Home        string           `json:"home"`
+	Login       string           `json:"login"`
+	LoginCookie string           `json:"thirdPartyLoginCookie"`
+	LoginInfo   string           `json:"thirdPartyLoginInfo"`
 }
 
 var (

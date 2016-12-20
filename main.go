@@ -22,6 +22,7 @@ import (
 	"github.com/Cepave/grafana/pkg/services/sqlstore"
 	"github.com/Cepave/grafana/pkg/setting"
 	"github.com/Cepave/grafana/pkg/social"
+	"github.com/astaxie/beego/orm"
 )
 
 var version = "master"
@@ -65,8 +66,15 @@ func main() {
 		go metrics.StartUsageReportLoop()
 	}
 
+	initDatabase()
+
 	cmd.StartServer()
 	exitChan <- 0
+}
+
+func initDatabase() {
+	uic := setting.ConfigOpenFalcon.UicDB
+	orm.RegisterDataBase("default", "mysql", uic.Addr, uic.Idle, uic.Max)
 }
 
 func initRuntime() {

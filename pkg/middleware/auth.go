@@ -2,20 +2,22 @@ package middleware
 
 import (
 	"database/sql"
-	"github.com/Cepave/grafana/pkg/bus"
-	"github.com/Cepave/grafana/pkg/util"
-	_ "github.com/go-sql-driver/mysql"
+	"encoding/json"
+	"io/ioutil"
 	"log"
+	"net/http"
+	"net/url"
 	"strconv"
+	"strings"
 	"time"
 
-	"net/url"
-	"strings"
-
-	"github.com/Unknwon/macaron"
-
+	"github.com/Cepave/grafana/pkg/bus"
 	m "github.com/Cepave/grafana/pkg/models"
 	"github.com/Cepave/grafana/pkg/setting"
+	"github.com/Cepave/grafana/pkg/util"
+	"github.com/Unknwon/macaron"
+	"github.com/astaxie/beego/orm"
+	_ "github.com/go-sql-driver/mysql"
 )
 
 type AuthOptions struct {
@@ -116,7 +118,7 @@ func getOpenFalconSessionUsername(sig string) string {
 	var id int64
 	var uid int64
 	var expired string
-	err = stmtOut.QueryRow(sig).Scan(&id, &uid, &expired) // WHERE id = endpointId
+	err = stmtOut.QueryRow(sig).Scan(&id, &uid, &expired)
 	if err != nil {
 		log.Println(err.Error())
 		return ""
@@ -141,12 +143,61 @@ func getOpenFalconSessionUsername(sig string) string {
 	defer stmtOut.Close()
 
 	var name string
-	err = stmtOut.QueryRow(uid).Scan(&name) // WHERE id = endpointId
+	err = stmtOut.QueryRow(uid).Scan(&name)
 	if err != nil {
 		log.Println(err.Error())
 		return ""
 	}
 	return name
+}
+
+func getThirdPartyUsername(cookieName string, token string) string {
+	if token == "" {
+		return ""
+	}
+
+	infoURL := setting.ConfigOpenFalcon.LoginInfo
+	req, _ := http.NewRequest("GET", infoURL, nil)
+	cookie := http.Cookie{Name: cookieName, Value: token}
+	req.AddCookie(&cookie)
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	defer resp.Body.Close()
+	if err != nil {
+		return ""
+	}
+	body, _ := ioutil.ReadAll(resp.Body)
+	var nodes = make(map[string]interface{})
+	if err := json.Unmarshal(body, &nodes); err != nil {
+		return ""
+	}
+	username := ""
+	email := ""
+	if data, ok := nodes["data"].(map[string]interface{}); ok {
+		if _, ok := data["username"]; ok {
+			username = data["username"].(string)
+		}
+		if _, ok := data["email"]; ok {
+			email = data["email"].(string)
+		}
+	}
+	if username == "" {
+		return ""
+	}
+
+	o := orm.NewOrm()
+	var rows []orm.Params
+	sql := "SELECT * FROM uic.user WHERE name= ? AND email = ? LIMIT 1"
+	num, err := o.Raw(sql, username, email).Values(&rows)
+	if err != nil {
+		return ""
+	} else if num > 0 {
+		user := rows[0]
+		username = user["name"].(string)
+	} else {
+		return ""
+	}
+	return username
 }
 
 func loginUserWithUser(user *m.User, c *Context) {
@@ -195,29 +246,37 @@ func loginWithOpenFalconCookie(c *Context, username string) {
 
 func Auth(options *AuthOptions) macaron.Handler {
 	return func(c *Context) {
-		sig := c.GetCookie("sig")
-		if len(sig) == 0  && options.ReqSignedIn && !c.AllowAnonymous {
-			c.SetCookie(setting.CookieUserName, "", -1, setting.AppSubUrl+"/")
-			c.SetCookie(setting.CookieRememberName, "", -1, setting.AppSubUrl+"/")
-			c.Session.Destory(c)
-			url := setting.ConfigOpenFalcon.Login + c.Req.RequestURI
-			log.Println(url)
-			c.Redirect(url)
-			return
-		}
-		if !c.IsSignedIn {
-			username := getOpenFalconSessionUsername(sig)
+		cookieName := setting.ConfigOpenFalcon.LoginCookie
+		token := c.GetCookie(cookieName)
+		if len(token) > 0 {
+			username := getThirdPartyUsername(cookieName, token)
 			loginWithOpenFalconCookie(c, username)
-		}
+		} else {
+			sig := c.GetCookie("sig")
+			if len(sig) == 0  && options.ReqSignedIn && !c.AllowAnonymous {
+				c.SetCookie(setting.CookieUserName, "", -1, setting.AppSubUrl+"/")
+				c.SetCookie(setting.CookieRememberName, "", -1, setting.AppSubUrl+"/")
+				c.Session.Destory(c)
+				url := setting.ConfigOpenFalcon.Login + c.Req.RequestURI
+				log.Println(url)
+				c.Redirect(url)
+				return
+			}
+			if !c.IsSignedIn {
+				username := getOpenFalconSessionUsername(sig)
+				loginWithOpenFalconCookie(c, username)
+			}
 
-		if !c.IsSignedIn && options.ReqSignedIn && !c.AllowAnonymous {
-			notAuthorized(c)
-			return
-		}
+			if !c.IsSignedIn && options.ReqSignedIn && !c.AllowAnonymous {
+				notAuthorized(c)
+				return
+			}
 
-		if !c.IsGrafanaAdmin && options.ReqGrafanaAdmin {
-			accessForbidden(c)
-			return
+			if !c.IsGrafanaAdmin && options.ReqGrafanaAdmin {
+				accessForbidden(c)
+				return
+			}
+
 		}
 	}
 }
