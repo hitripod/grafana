@@ -4,6 +4,13 @@
         "idle": 10,
         "max": 100
     },
+    "uicdb": {
+        "addr": "root:@tcp(127.0.0.1:3306)/uic?charset=utf8&loc=Asia%2FTaipei",
+        "idle": 10,
+        "max": 100
+    },
     "home": "http://example.com/",
-    "login": "http://example.com/path_to_login?callback=http://example.com/"
+    "login": "http://example.com/path_to_login?callback=http://example.com/",
+    "thirdPartyLoginCookie": "cookie_key",
+    "thirdPartyLoginInfo": "https://example.com/path_to_info"
 }
